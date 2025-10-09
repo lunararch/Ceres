@@ -21,7 +21,6 @@ func main() {
     }
     defer window.Close()
 
-    // Create shader manager
     shaderManager := graphics.NewShaderManager()
     defer shaderManager.DeleteAll()
 
@@ -34,17 +33,13 @@ func main() {
         log.Fatal(err)
     }
 
-    // Create camera
     cam := camera.NewCamera(ceresmath.NewVector3(0, 2, 5))
 
-    // Create input handler
     inputHandler := input.NewInputHandler(window.GetHandle())
     inputHandler.SetCursorMode(glfw.CursorDisabled) // Capture cursor for FPS controls
 
-    // Create a grid of cubes to visualize movement
     cubes := createCubeGrid(10, 10)
 
-    // Create cube geometry
     var vao, vbo uint32
     vertices := createCubeVertices()
     gl.GenVertexArrays(1, &vao)
@@ -54,11 +49,9 @@ func main() {
     gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
     gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
 
-    // Position
     gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 6*4, gl.PtrOffset(0))
     gl.EnableVertexAttribArray(0)
 
-    // Color
     gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 6*4, gl.PtrOffset(3*4))
     gl.EnableVertexAttribArray(1)
 
@@ -75,22 +68,17 @@ func main() {
     showControls := true
 
     for !window.ShouldClose() {
-        // Calculate delta time
         currentFrame := time.Now()
         deltaTime := float32(currentFrame.Sub(lastFrame).Seconds())
         lastFrame = currentFrame
 
-        // Process input
         processInput(inputHandler, cam, deltaTime, window)
 
-        // Clear screen
         window.Clear()
 
-        // Get matrices
         projection := cam.GetProjectionMatrix(window.GetAspectRatio(), 0.1, 100.0)
         view := cam.GetViewMatrix()
 
-        // Render cubes
         shader.Use()
         shader.SetMat4("projection", projection.ToPtr())
         shader.SetMat4("view", view.ToPtr())
@@ -103,7 +91,6 @@ func main() {
         }
         gl.BindVertexArray(0)
 
-        // Display camera info
         if showControls && int(currentFrame.Unix())%5 == 0 {
             fmt.Printf("\rPos: (%.1f, %.1f, %.1f) | Yaw: %.0f° | Pitch: %.0f° | FPS: %.0f",
                 cam.Position.X, cam.Position.Y, cam.Position.Z,
@@ -121,7 +108,6 @@ func main() {
 }
 
 func processInput(inputHandler *input.InputHandler, cam *camera.Camera, deltaTime float32, window *graphics.Window) {
-    // Movement
     if inputHandler.IsKeyPressed(glfw.KeyW) {
         cam.ProcessKeyboard(camera.Forward, deltaTime)
     }
@@ -141,16 +127,13 @@ func processInput(inputHandler *input.InputHandler, cam *camera.Camera, deltaTim
         cam.ProcessKeyboard(camera.Down, deltaTime)
     }
 
-    // Mouse look
     xOffset, yOffset := inputHandler.GetMouseMovement()
     cam.ProcessMouseMovement(float32(xOffset), float32(yOffset), true)
 
-    // Exit
     if inputHandler.IsKeyPressed(glfw.KeyEscape) {
         window.GetHandle().SetShouldClose(true)
     }
 
-    // Toggle cursor
     if inputHandler.IsKeyPressed(glfw.KeyTab) {
         inputHandler.SetCursorMode(glfw.CursorNormal)
     }
