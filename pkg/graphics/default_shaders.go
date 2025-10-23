@@ -5,10 +5,12 @@ const BasicVertexShader = `#version 410 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoord;
+layout (location = 3) in vec3 aColor;
 
 out vec3 FragPos;
 out vec3 Normal;
 out vec2 TexCoord;
+out vec3 VertexColor;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -19,6 +21,7 @@ void main()
     FragPos = vec3(model * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(model))) * aNormal;
     TexCoord = aTexCoord;
+    VertexColor = aColor;
     
     gl_Position = projection * view * vec4(FragPos, 1.0);
 }
@@ -29,6 +32,7 @@ const BasicFragmentShader = `#version 410 core
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoord;
+in vec3 VertexColor;
 
 out vec4 FragColor;
 
@@ -37,6 +41,7 @@ uniform vec3 viewPos;
 uniform vec3 lightColor;
 uniform vec3 objectColor;
 uniform bool useTexture;
+uniform bool useVertexColor;
 uniform sampler2D textureSampler;
 
 void main()
@@ -63,6 +68,8 @@ void main()
     if (useTexture) {
         vec3 texColor = texture(textureSampler, TexCoord).rgb;
         result = (ambient + diffuse + specular) * texColor;
+    } else if (useVertexColor) {
+        result = (ambient + diffuse + specular) * VertexColor;
     } else {
         result = (ambient + diffuse + specular) * objectColor;
     }
